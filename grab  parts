@@ -1,0 +1,32 @@
+-- Define tables to hold anchored and unanchored parts
+local anchoredParts = {}
+local unanchoredParts = {}
+
+-- Function to categorize parts based on their Anchored property
+local function categorizeParts(model)
+    -- Loop through all descendants of the model
+    for _, part in pairs(model:GetDescendants()) do
+        -- Check if the part is a BasePart (e.g., Part, MeshPart)
+        if part:IsA("BasePart") then
+            if part.Anchored then
+                table.insert(anchoredParts, part) -- Add to anchored parts
+            else
+                table.insert(unanchoredParts, part) -- Add to unanchored parts
+            end
+        end
+    end
+end
+
+-- Call the function on the Workspace (or any specific model you want)
+categorizeParts(workspace)
+
+-- Print results for debugging
+print("Anchored Parts:", #anchoredParts)
+for _, part in ipairs(anchoredParts) do
+    print(part.Name)
+end
+
+print("Unanchored Parts:", #unanchoredParts)
+for _, part in ipairs(unanchoredParts) do
+    print(part.Name)
+end
