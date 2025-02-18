@@ -1,31 +1,33 @@
-local anchoredParts = {}
-local unanchoredParts = {}
+local triggerPart = script.Parent
+local debounce = false -- Prevent rapid repeated triggering
 
--- Function to categorize parts based on their Anchored property
-local function categorizeParts(model)
-    -- Loop through all descendants of the model
-    for _, part in pairs(model:GetDescendants()) do
-        -- Check if the part is a BasePart (e.g., Part, MeshPart)
-        if part:IsA("BasePart") then
-            if part.Anchored then
-                table.insert(anchoredParts, part) -- Add to anchored parts
-            else
-                table.insert(unanchoredParts, part) -- Add to unanchored parts
-            end
+triggerPart.Touched:Connect(function(hit)
+    if debounce then return end
+    debounce = true
+    
+    -- Get the player's character and HumanoidRootPart
+    local character = hit.Parent
+    local player = game.Players:GetPlayerFromCharacter(character)
+    if not player then debounce = false return end
+    
+    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+    if not humanoidRootPart then debounce = false return end
+    
+    -- Collect all unanchored parts in the workspace
+    local unanchoredParts = {}
+    for _, obj in ipairs(workspace:GetDescendants()) do
+        if obj:IsA("BasePart") and not obj.Anchored then
+            table.insert(unanchoredParts, obj)
         end
     end
-end
-
--- Call the function on the Workspace (or any specific model you want)
-categorizeParts(workspace)
-
--- Print results for debugging
-print("Anchored Parts:", #anchoredParts)
-for _, part in ipairs(anchoredParts) do
-    print(part.Name)
-end
-
-print("Unanchored Parts:", #unanchoredParts)
-for _, part in ipairs(unanchoredParts) do
-    print(part.Name)
-end
+    
+    -- Teleport all unanchored parts to the player
+    for _, part in ipairs(unanchoredParts) do
+        part.Velocity = Vector3.new() -- Stop existing movement
+        part.RotVelocity = Vector3.new()
+        part.CFrame = humanoidRootPart.CFrame + Vector3.new(0, 5, 0) -- Offset to avoid overlapping
+    end
+    
+    debounce = false
+    print("Teleported "..#unanchoredParts.." parts to "..player.Name)
+end)
